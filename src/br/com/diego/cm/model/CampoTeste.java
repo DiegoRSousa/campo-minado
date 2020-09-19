@@ -1,10 +1,13 @@
 package br.com.diego.cm.model;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import br.com.diego.cm.exception.ExplosaoException;
 
 public class CampoTeste {
 	private Campo campo;
@@ -54,5 +57,54 @@ public class CampoTeste {
 		Campo vizinho = new Campo(1, 1);
 		boolean resultado = campo.adicionarVizinho(vizinho);
 		assertFalse(resultado);
+	}
+	
+	@Test
+	public void testeValorPadraoAtributoMarcado() {
+		assertFalse(campo.isMarcado());
+	}
+	
+	@Test
+	void testeAlternarMarcacao() {
+		campo.alternarMarcacao();
+		assertTrue(campo.isMarcado());
+	}
+	
+	@Test
+	void testeAlternarMarcacaoDuasChamadas() {
+		campo.alternarMarcacao();
+		campo.alternarMarcacao();
+		assertFalse(campo.isMarcado());
+	}
+	
+	@Test
+	void testeAbrirNaoMinadoNaoMarcado() {
+		assertTrue(campo.abrir());
+	}
+	
+	@Test
+	void testeAbrirNaoMinadoMasMarcado() {
+		campo.alternarMarcacao();
+		assertFalse(campo.abrir());
+	}
+	
+	@Test
+	void testeAbrirMinadoMasNaoMarcado() {
+		campo.minar();
+		assertThrows(ExplosaoException.class, () -> {
+			campo.abrir();
+		});
+	}
+	
+	@Test
+	void testeAbrirComVizinhos() {
+		var campo22 = new Campo(2, 2);
+		var campo11 = new Campo(1, 1);
+		
+		campo.adicionarVizinho(campo22);
+		campo22.adicionarVizinho(campo11);
+		
+		campo.abrir();
+		assertTrue(campo22.isAberto() && campo11.isAberto());
 	}
 }

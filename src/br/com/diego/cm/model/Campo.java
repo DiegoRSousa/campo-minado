@@ -3,6 +3,8 @@ package br.com.diego.cm.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.diego.cm.exception.ExplosaoException;
+
 public class Campo {
 
 	private final int linha;
@@ -17,7 +19,7 @@ public class Campo {
 		this.coluna = coluna;
 	}
 	
-	public boolean adicionarVizinho(Campo vizinho) {
+	boolean adicionarVizinho(Campo vizinho) {
 		boolean linhaDiferente = linha != vizinho.linha;
 		boolean colunaDiferente = coluna != vizinho.coluna;
 		boolean diagonal = linhaDiferente && colunaDiferente;
@@ -36,4 +38,74 @@ public class Campo {
 		return false; 
 	}
 	
+	void alternarMarcacao() {
+		marcado = marcado ? false : true;
+	}
+	
+	boolean abrir() {
+		if(!aberto && !marcado) {
+			aberto = true;
+			
+			if(minado)
+				throw new ExplosaoException();
+			
+			if(vizinhancaSegura())
+				vizinhos.forEach(v -> v.abrir());
+			
+			return true;
+		}
+			
+		return false;
+	}
+	
+	boolean vizinhancaSegura() {
+		return vizinhos.stream().noneMatch(v -> v.minado);
+	}
+	
+	void minar() {
+		minado = true;
+	}
+	
+	public boolean isMarcado () {
+		return marcado;
+	}
+	
+	public boolean isAberto() {
+		return aberto;
+	}
+	
+	public int getLinha() {
+		return linha;
+	}
+	
+	public int getColuna() {
+		return coluna;
+	}
+	
+	public boolean objetivoAlcancado() {
+		boolean desvendado = !minado && aberto;
+		boolean protegido = minado && marcado;
+		return desvendado || protegido;
+	}
+	
+	long minasNaVizinhanca() {
+		return vizinhos.stream().filter(v -> v.minado).count();
+	}
+	
+	void reiniciar() {
+		aberto = false;
+		marcado = false;
+	}
+	
+	public String toString() {
+		if(marcado)
+			return "X";
+		else if (aberto && minado)
+			return "*";
+		else if (aberto && minasNaVizinhanca() > 0) 
+			return Long.toString(minasNaVizinhanca());
+		else if (aberto)
+			return " ";
+		return "?";
+	}
 }
